@@ -5,17 +5,16 @@ const projectData = {
   "Bon Kiara": "Land Marker Sdn Bhd",
   "Skylon": "GBD DEVELOPMENT SDN BHD",
   "Conlay": "PATSAWAN PROPERTIES SDN BHD",
-  "裝修公司": "XINHAUS ENTERPRISE"
-  "Skyline Embassy Tower A & B": "SKYLINE EMBASSY SDN BHD",  // ← 建議填正確名稱
-  "Skyline Embassy Tower C": "SKYLINE EMBASSY SDN BHD",
+  "裝修公司": "XINHAUS ENTERPRISE",
+  "Skyline Embassy": "SKYLINE EMBASSY SDN BHD",
   "Oxley KLCC": "Oxley Rising Sdn Bhd",
   "二家代辦": "SHL INTERNATIONAL(MM2H) SDN.BHD"
 };
 
+// 數字轉英文大寫金額
 function numberToWords(num) {
-  if (num < 0) {
-    return "Negative numbers are not supported.";
-  }
+  if (num < 0) return "Negative numbers are not supported.";
+  if (num === 0) return "Zero Only";
 
   const units = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
   const teens = ["", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
@@ -26,8 +25,7 @@ function numberToWords(num) {
     let str = "";
 
     if (num >= 100) {
-      const hundreds = Math.floor(num / 100);
-      str += units[hundreds] + " Hundred ";
+      str += units[Math.floor(num / 100)] + " Hundred ";
       num %= 100;
     }
 
@@ -36,21 +34,15 @@ function numberToWords(num) {
     } else {
       const tensPlace = Math.floor(num / 10);
       const unitsPlace = num % 10;
-      if (tensPlace > 0) {
-        str += tens[tensPlace] + " ";
-      }
-      if (unitsPlace > 0) {
-        str += units[unitsPlace] + " ";
-      }
+      if (tensPlace > 0) str += tens[tensPlace] + " ";
+      if (unitsPlace > 0) str += units[unitsPlace] + " ";
     }
 
     return str.trim();
   }
 
   function convertIntegerPart(num) {
-    let str = "";
-    let chunkIndex = 0;
-
+    let str = "", chunkIndex = 0;
     while (num > 0) {
       const chunk = num % 1000;
       if (chunk > 0) {
@@ -60,31 +52,28 @@ function numberToWords(num) {
       num = Math.floor(num / 1000);
       chunkIndex++;
     }
-
     return str.trim();
   }
 
   function convertDecimalPart(num) {
     const decimalWords = convertChunk(num);
-    return "Cents " + decimalWords;
+    return decimalWords + " Cents";
   }
 
   const integerPart = Math.floor(num);
   const decimalPart = Math.round((num - integerPart) * 100);
 
   let result = "";
+
   if (integerPart > 0) {
     result += convertIntegerPart(integerPart);
   }
 
   if (decimalPart > 0) {
-    const centsPart = convertDecimalPart(decimalPart);
-    result += " And " + centsPart;
+    result += " And " + convertDecimalPart(decimalPart);
   }
 
-  result += " Only";
-
-  return result.trim();
+  return result.trim() + " Only";
 }
 
 // 取得HTML元素
@@ -99,19 +88,18 @@ const checkAmountWords = document.getElementById('checkAmountWords');
 const checkDate = document.getElementById('checkDate');
 const checkAmountNumber = document.getElementById('checkAmountNumber');
 
-// 當下拉選單變更時，顯示對應的銀行戶名
+// 建案選擇更新銀行戶名與支票模擬欄
 projectSelect.addEventListener('change', () => {
   const selectedValue = projectSelect.value;
   const developerName = projectData[selectedValue] || '';
   developerAccountInput.value = developerName;
-  // 更新支票上的建案名稱
   checkAccountName.textContent = developerName;
 });
 
-// 當輸入金額時，轉換成英文大寫
+// 金額輸入後轉換成英文大寫與支票顯示
 amountInput.addEventListener('input', () => {
   const amount = Number(amountInput.value);
-  if (isNaN(amount)) {
+  if (isNaN(amount) || amount < 0) {
     amountWordsInput.value = '';
     checkAmountWords.textContent = '';
     checkAmountNumber.textContent = '';
@@ -123,14 +111,13 @@ amountInput.addEventListener('input', () => {
   }
 });
 
-// 當選擇日期時，格式化為 ddmmyy
+// 日期輸入後格式化並顯示
 cashDateInput.addEventListener('change', () => {
   const dateValue = cashDateInput.value;
   if (dateValue) {
     const [year, month, day] = dateValue.split('-');
-    const shortYear = year.substring(2); // 獲取年份的最後兩位
+    const shortYear = year.slice(2);
     formattedDateInput.value = `${day}${month}${shortYear}`;
-    // 更新支票上的日期
     checkDate.textContent = `${day}/${month}/${shortYear}`;
   } else {
     formattedDateInput.value = '';
